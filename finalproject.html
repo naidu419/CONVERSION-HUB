@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversion Hub </title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: rgb(34, 29, 77); 
+            --main-text: rgb(19, 195, 195); 
+            --primary-accent: rgb(15, 195, 171); 
+            --secondary-accent: rgb(64, 8, 184); 
+            --card-bg:  rgb(45, 28, 94);
+            --input-bg:   rgb(71, 72, 109);
+            --border-color:  rgb(67, 69, 110);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        body.light-mode {
+            --bg-color: rgb(232, 236, 235);
+            --main-text: rgb(82, 124, 148);
+            --card-bg: rgb(232, 236, 235);
+            --input-bg: rgb(232, 236, 235);
+            --border-color: rgb(232, 236, 235);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--main-text);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden; 
+        }
+        .flex-row { display: flex; gap: 20px; }
+        .flex-col { display: flex; flex-direction: column; gap: 20px; }
+        .text-center { text-align: center; }
+        .content-only .sidebar {
+            display: none;
+        }
+        .content-only .main-view {
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px 0;
+            box-shadow: 4px 0 10px var(--shadow-color);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary-accent);
+            text-shadow: 0 0 5px rgba(255, 65, 108, 0.5);
+        }
+
+        .nav-category {
+            font-size: 0.9em;
+            color: var(--secondary-accent);
+            padding: 10px 25px 5px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 25px;
+            color: var(--main-text);
+            text-decoration: none;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-link i { margin-right: 15px; font-size: 1.2em; }
+        .nav-link:hover {
+            background-color: rgba(255, 65, 108, 0.1);
+            color: var(--primary-accent);
+        }
+        .nav-link.active {
+            border-left-color: var(--primary-accent);
+            background-color: rgba(255, 65, 108, 0.2);
+            color: var(--primary-accent);
+            font-weight: 600;
+        }
+        .settings-toggle {
+            margin-top: auto; 
+            padding: 20px 25px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        .settings-toggle input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 45px;
+            height: 22px;
+            background: var(--input-bg);
+            border-radius: 11px;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+        }
+        .settings-toggle input[type="checkbox"]::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: var(--main-text);
+            border-radius: 50%;
+            transition: transform 0.3s, background 0.3s;
+        }
+        .settings-toggle input[type="checkbox"]:checked::before {
+            transform: translateX(23px);
+            background: var(--primary-accent);
+        }
+        .main-view {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto; 
+        }
+
+        .content-module {
+            display: none; 
+            animation: fadeIn 0.5s ease-out;
+            margin-bottom: 40px;
+        }
+
+        .content-module.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--secondary-accent);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px var(--shadow-color);
+        }
+        label {
+            display: block; 
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="number"], 
+        input[type="text"], 
+        input[type="password"], 
+        input[type="date"], 
+        input[type="email"], 
+        select, 
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            background-color: var(--input-bg);
+            color: var(--main-text);
+            margin-top: 5px;
+            display: block; 
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: var(--card-bg);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: rgb(141, 58, 67);
+        }
+
+        .output-display {
+            background-color: var(--input-bg);
+            border: 2px solid var(--primary-accent);
+            padding: 15px;
+            border-radius: 8px;
+            min-height: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 1.1em;
+            word-wrap: break-word;
+        }
+        
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-unit { color: var(--secondary-accent); font-weight: bold; }
+
+        .about-content {
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+        .about-content h3 {
+            color: var(--primary-accent);
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+
+        .simulation-box {
+            background-color: rgba(33, 150, 243, 0.1);
+            border: 1px solid var(--secondary-accent);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .simulation-box i {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: var(--secondary-accent);
+        }
+        .auth-form { max-width: 400px; margin: 50px auto; text-align: center; }
+        .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; width: 100%; background: var(--bg-color); text-align: center; }
+        .welcome-screen h1 { font-size: 4em; color: var(--primary-accent); text-shadow: 0 0 10px rgba(255, 65, 108, 0.7); margin-bottom: 0.2em; }
+        .welcome-screen p { font-size: 1.5em; margin-bottom: 2em; color: var(--main-text); }
+        .welcome-buttons { 
+            display: flex; 
+            justify-content: center; 
+            gap: 15px;
+            flex-direction: row-reverse; 
+        }
+        .welcome-buttons a { padding: 15px 30px; background-color: var(--secondary-accent); color: white; text-decoration: none; border-radius: 8px; font-size: 1.1em; transition: background-color 0.3s, transform 0.3s; }
+        .welcome-buttons a:hover { background-color: #1e87e5; transform: translateY(-2px); }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; }
+        .dashboard-card { padding: 20px; text-align: center; cursor: pointer; transition: transform 0.3s, background-color 0.3s, box-shadow 0.3s; border: 1px solid var(--border-color); }
+        .dashboard-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 12px 20px var(--shadow-color); background-color: rgba(255, 65, 108, 0.1); }
+        .dashboard-card i { font-size: 2.5em; color: var(--primary-accent); margin-bottom: 10px; }
+        .dashboard-card h4 { margin: 0; font-size: 1.1em; color: var(--main-text); }
+        #quick-search { margin-bottom: 30px; background-color: var(--input-bg); border: 1px solid var(--border-color); }
+        .fun-fact-box { background-color: var(--primary-accent); color: var(--card-bg); padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; font-style: italic; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+        
+        .admin-section { margin-top: 30px; padding-top: 20px; border-top: 1px dashed var(--border-color); }
+        .admin-section h3 { color: var(--primary-accent); margin-bottom: 15px; }
+        .admin-status { color: var(--secondary-accent); font-weight: bold; }
+    </style>
+</head>
+<body class="content-only">
+
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-microchip"></i> CONVERSION HUB
+        </div>
+        
+        <div class="nav-category">Account & Info</div>
+        <nav>
+            <a href="#" class="nav-link active" data-module="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="#" class="nav-link" data-module="about-page"><i class="fas fa-info-circle"></i> About Page</a>
+            <a href="#" class="nav-link" data-module="contact-us"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="#" class="nav-link" data-module="admin-dashboard" id="link-admin"><i class="fas fa-user-shield"></i> Admin Panel</a>
+            <a href="#" class="nav-link" data-module="dashboard" id="link-logout"><i class="fas fa-sign-out-alt"></i> Logout (User)</a>
+        </nav>
+
+        
+        <div class="nav-category">Core Measurements</div>
+        <nav>
+            <a href="#" class="nav-link" data-module="temp-lab"><i class="fas fa-thermometer-half"></i> Temperature Converter</a>
+            <a href="#" class="nav-link" data-module="length-studio"><i class="fas fa-ruler"></i> Length Converter</a>
+            <a href="#" class="nav-link" data-module="weight-studio"><i class="fas fa-weight-hanging"></i> Weight Converter (Mass)</a>
+            <a href="#" class="nav-link" data-module="time-clock"><i class="fas fa-clock"></i> Time Converter</a>
+            <a href="#" class="nav-link" data-module="speed-calc"><i class="fas fa-gauge-high"></i> Speed Converter</a>
+        </nav>
+
+        <div class="nav-category">Physical Dimensions</div>
+        <nav>
+            <a href="#" class="nav-link" data-module="area-mapper"><i class="fas fa-drafting-compass"></i> Area Converter</a>
+            <a href="#" class="nav-link" data-module="volume-calc"><i class="fas fa-cube"></i> Volume Converter</a>
+            <a href="#" class="nav-link" data-module="energy-calc"><i class="fas fa-bolt"></i>  Energy Converter</a>
+            <a href="#" class="nav-link" data-module="pressure-calc"><i class="fas fa-compress"></i> Pressure Converter</a>
+        </nav>
+
+        <div class="nav-category">Digital & Finance</div>
+        <nav>
+            <a href="#" class="nav-link" data-module="currency-arena"><i class="fas fa-coins"></i> Currency Converter</a>
+            <a href="#" class="nav-link" data-module="data-byte-calc"><i class="fas fa-hdd"></i> Data Storage Converter</a>
+            <a href="#" class="nav-link" data-module="age-converter"><i class="fas fa-calculator"></i> Age Calculator</a>
+        </nav>
+        
+        <div class="nav-category">Utility</div>
+        <nav>
+             <a href="#" class="nav-link" data-module="percent-wizard"><i class="fas fa-calculator"></i> Unit Converter (Percent)</a>
+        </nav>
+
+
+        <div class="settings-toggle">
+            <span>Dark Mode</span>
+            <input type="checkbox" id="theme-toggle" checked>
+        </div>
+    </div>
+
+    <div class="main-view">
+
+        <div id="welcome-page" class="content-module active">
+            <div class="welcome-screen">
+                <i class="fas fa-microchip" style="font-size: 5em; color: var(--secondary-accent); margin-bottom: 20px;"></i>
+                <h1>Welcome to Conversion Hub</h1>
+                <p>Your one-stop tool for over a dozen powerful converters.</p>
+                <div class="welcome-buttons">
+                    <a href="#" onclick="switchModule('register-page'); return false;">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                    <a href="#" onclick="switchModule('login-page'); return false;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </div>
+                 </div>
+        </div>
+
+        <div id="register-page" class="content-module">
+            <div class="auth-form card">
+                <h2>Account Registration</h2>
+                <p style="color: var(--primary-accent); font-weight: bold;"></p>
+                <form id="register-form">
+                    <div class="input-group"><label for="reg-username">Username:</label><input type="text" id="reg-username" required placeholder="Enter desired username"></div>
+                    <div class="input-group"><label for="reg-email">Email:</label><input type="email" id="reg-email" required placeholder="Enter a valid email address"></div>
+                    <div class="input-group"><label for="reg-password">Password:</label><input type="password" id="reg-password" required placeholder="Password (min 6 chars)"></div>
+                    <button type="submit" class="btn-primary">Register Account</button>
+                    <p>Already have an account? <a href="#" onclick="switchModule('login-page'); return false;">Login here.</a></p>
+                </form>
+                <div id="register-message" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div id="login-page" class="content-module">
+            <div class="auth-form card">
+                <h2>Account Login</h2>
+                <p style="color: var(--primary-accent); font-weight: bold;"></p>
+                <form id="login-form">
+                    <div class="input-group"><label for="login-username">Username/Email:</label><input type="text" id="login-username" required placeholder="Your username or email"></div>
+                    <div class="input-group"><label for="login-password">Password:</label><input type="password" id="login-password" required placeholder="Your password"></div>
+                    <button type="submit" class="btn-primary">Login</button>
+                    <p>Don't have an account? <a href="#" onclick="switchModule('register-page'); return false;">Register now.</a></p>
+                </form>
+                <div id="login-message" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+        
+        <div id="dashboard" class="content-module">
+            <h2>Welcome, <span id="user-greeting">User</span>!</h2>
+            <input type="text" id="quick-search" class="card" placeholder="🔍 Quick Search: Type 'temp', 'speed', 'language', etc.">
+
+            <div class="dashboard-grid">
+                <div class="card dashboard-card" data-module="temp-lab"><i class="fas fa-thermometer-half"></i><h4>Temperature Converter</h4></div>
+                <div class="card dashboard-card" data-module="length-studio"><i class="fas fa-ruler"></i><h4>Length Converter</h4></div>
+                <div class="card dashboard-card" data-module="weight-studio"><i class="fas fa-weight-hanging"></i><h4>Weight Converter</h4></div>
+                <div class="card dashboard-card" data-module="time-clock"><i class="fas fa-clock"></i><h4>Time Converter</h4></div>
+                <div class="card dashboard-card" data-module="speed-calc"><i class="fas fa-gauge-high"></i><h4>Speed Converter</h4></div>
+                
+                <div class="card dashboard-card" data-module="area-mapper"><i class="fas fa-drafting-compass"></i><h4>Area Converter</h4></div>
+                <div class="card dashboard-card" data-module="volume-calc"><i class="fas fa-cube"></i><h4>Volume Converter</h4></div>
+                <div class="card dashboard-card" data-module="energy-calc"><i class="fas fa-bolt"></i><h4>Energy Converter</h4></div>
+                <div class="card dashboard-card" data-module="pressure-calc"><i class="fas fa-compress"></i><h4>Pressure Converter</h4></div>
+                
+                <div class="card dashboard-card" data-module="currency-arena"><i class="fas fa-coins"></i><h4>Currency Converter</h4></div>
+                <div class="card dashboard-card" data-module="data-byte-calc"><i class="fas fa-hdd"></i><h4>Data Storage Converter</h4></div>
+                <div class="card dashboard-card" data-module="age-converter"><i class="fas fa-calculator"></i><h4>Age Calculator</h4></div>
+                
+                <div class="card dashboard-card" data-module="percent-wizard"><i class="fas fa-calculator"></i><h4>Unit Converter (Percent)</h4></div>
+                <div class="card dashboard-card" data-module="contact-us"><i class="fas fa-envelope"></i><h4>Contact Us</h4></div>
+                <div class="card dashboard-card" data-module="about-page"><i class="fas fa-info-circle"></i><h4>About Page</h4></div>
+            </div>
+        </div>
+        
+        <div id="temp-lab" class="content-module">
+            <h2>Temperature Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="temp-input">Input Value:</label>
+                        <input type="number" id="temp-input" value="0" step="any" placeholder="Enter temperature value">
+                    </div>
+                    <div class="input-group">
+                        <label for="temp-from-unit">From Unit:</label>
+                        <select id="temp-from-unit">
+                            <option value="celsius">Celsius (°C)</option>
+                            <option value="fahrenheit">Fahrenheit (°F)</option>
+                            <option value="kelvin">Kelvin (K)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="temp-output">
+                        Enter a value to see results.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="length-studio" class="content-module">
+            <h2>Length Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="length-input">Input Value:</label>
+                        <input type="number" id="length-input" value="1" step="any" placeholder="Enter length value">
+                    </div>
+                    <div class="input-group">
+                        <label for="length-from-unit">From Unit:</label>
+                        <select id="length-from-unit">
+                            <option value="millimeters">Millimeters (mm)</option>
+                            <option value="centimeters">Centimeters (cm)</option>
+                            <option value="meters">Meters (m)</option>
+                            <option value="kilometers">Kilometers (km)</option>
+                            <option value="inches">Inches (in)</option>
+                            <option value="feet">Feet (ft)</option>
+                            <option value="yards">Yards (yd)</option>
+                            <option value="miles">Miles (mi)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Conversion Results:</label>
+                    <div class="output-display" id="length-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+        <div id="weight-studio" class="content-module">
+            <h2>Weight Converter (Mass)</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="weight-input">Input Value:</label>
+                        <input type="number" id="weight-input" value="1" step="any" placeholder="Enter mass/weight value">
+                    </div>
+                    <div class="input-group">
+                        <label for="weight-from-unit">From Unit:</label>
+                        <select id="weight-from-unit">
+                            <option value="milligrams">Milligrams (mg)</option>
+                            <option value="grams">Grams (g)</option>
+                            <option value="kilograms">Kilograms (kg)</option>
+                            <option value="metric_tons">Metric Tons (t)</option>
+                            <option value="ounces">Ounces (oz)</option>
+                            <option value="pounds">Pounds (lb)</option>
+                            <option value="stones">Stones (st)</option>
+                            <option value="us_tons">US Tons</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="weight-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="time-clock" class="content-module">
+            <h2>Time Converter (Duration)</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="time-input">Input Value:</label>
+                        <input type="number" id="time-input" value="3600" step="any" min="0" placeholder="Enter time in seconds">
+                    </div>
+                    <div class="input-group">
+                        <label for="time-from-unit">From Unit:</label>
+                        <select id="time-from-unit">
+                            <option value="milliseconds">Milliseconds (ms)</option>
+                            <option value="seconds">Seconds (s)</option>
+                            <option value="minutes">Minutes (min)</option>
+                            <option value="hours">Hours (hr)</option>
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                            <option value="months">Months (avg)</option>
+                            <option value="years">Years (avg)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="time-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="speed-calc" class="content-module">
+            <h2>Speed Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="speed-input">Input Value:</label>
+                        <input type="number" id="speed-input" value="60" step="any" min="0" placeholder="Enter speed">
+                    </div>
+                    <div class="input-group">
+                        <label for="speed-from-unit">From Unit:</label>
+                        <select id="speed-from-unit">
+                            <option value="mps">Meters/second (m/s)</option>
+                            <option value="kph">Kilometers/hour (kph)</option>
+                            <option value="mph">Miles/hour (mph)</option>
+                            <option value="knots">Knots (kn)</option>
+                            <option value="ftps">Feet/second (ft/s)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="speed-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="area-mapper" class="content-module">
+            <h2>Area Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="area-input">Input Value:</label>
+                        <input type="number" id="area-input" value="1" step="any" placeholder="Enter area value">
+                    </div>
+                    <div class="input-group">
+                        <label for="area-from-unit">From Unit:</label>
+                        <select id="area-from-unit">
+                            <option value="sq_mm">Square Millimeters (mm²)</option>
+                            <option value="sq_cm">Square Centimeters (cm²)</option>
+                            <option value="sq_m">Square Meters (m²)</option>
+                            <option value="sq_km">Square Kilometers (km²)</option>
+                            <option value="sq_in">Square Inches (in²)</option>
+                            <option value="sq_ft">Square Feet (ft²)</option>
+                            <option value="sq_yd">Square Yards (yd²)</option>
+                            <option value="acres">Acres (ac)</option>
+                            <option value="hectares">Hectares (ha)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="area-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="volume-calc" class="content-module">
+            <h2>Volume Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="volume-input">Input Value:</label>
+                        <input type="number" id="volume-input" value="1" step="any" placeholder="Enter volume value">
+                    </div>
+                    <div class="input-group">
+                        <label for="volume-from-unit">From Unit:</label>
+                        <select id="volume-from-unit">
+                            <option value="ml">Milliliters (ml)</option>
+                            <option value="liters">Liters (L)</option>
+                            <option value="cubic_cm">Cubic Centimeters (cm³)</option>
+                            <option value="cubic_m">Cubic Meters (m³)</option>
+                            <option value="us_gal">US Gallons (gal)</option>
+                            <option value="us_pint">US Pints (pt)</option>
+                            <option value="us_cup">US Cups (cup)</option>
+                            <option value="fl_oz">Fluid Ounces (fl oz)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="volume-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="energy-calc" class="content-module">
+            <h2>Energy Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="energy-input">Input Value:</label>
+                        <input type="number" id="energy-input" value="1000" step="any" placeholder="Enter energy value">
+                    </div>
+                    <div class="input-group">
+                        <label for="energy-from-unit">From Unit:</label>
+                        <select id="energy-from-unit">
+                            <option value="joules">Joules (J)</option>
+                            <option value="kilojoules">Kilojoules (kJ)</option>
+                            <option value="calories">Calories (cal)</option>
+                            <option value="kilocalories">Kilocalories (kcal)</option>
+                            <option value="wh">Watt-hours (Wh)</option>
+                            <option value="kwh">Kilowatt-hours (kWh)</option>
+                            <option value="btu">BTU</option>
+                            <option value="erg">Ergs</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="energy-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pressure-calc" class="content-module">
+            <h2>Pressure Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="pressure-input">Input Value:</label>
+                        <input type="number" id="pressure-input" value="1" step="any" placeholder="Enter pressure value">
+                    </div>
+                    <div class="input-group">
+                        <label for="pressure-from-unit">From Unit:</label>
+                        <select id="pressure-from-unit">
+                            <option value="kpa">Kilopascals (kPa)</option>
+                            <option value="bar">Bar</option>
+                            <option value="psi">PSI</option>
+                            <option value="atm">Atmospheres (atm)</option>
+                            <option value="torr">Torr
+                            <option value="psi">Pounds per square inch (psi)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="pressure-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="currency-arena" class="content-module">
+            <h2>Currency Converter <i class="fas fa-satellite-dish" style="color: var(--secondary-accent);"></i> (Live API)</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="currency-amount">Amount:</label>
+                        <input type="number" id="currency-amount" value="1" step="any" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="currency-from">From Currency:</label>
+                        <select id="currency-from"><option value="USD">Loading...</option></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="currency-to">To Currency:</label>
+                        <select id="currency-to"><option value="EUR">Loading...</option></select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Result:</label>
+                    <div class="output-display" id="currency-output" style="height: 150px; justify-content: center;"><i class="fas fa-coins"></i> Initializing converter...</div>
+                </div>
+            </div>
+            <div class="fun-fact-box" id="currency-status" style="margin-top: 20px;">Exchange rates updated live via API.</div>
+        </div>
+
+        <div id="data-byte-calc" class="content-module">
+            <h2>Data Storage Converter</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="data-input">Input Value:</label>
+                        <input type="number" id="data-input" value="1024" step="any" min="0" placeholder="Enter data size">
+                    </div>
+                    <div class="input-group">
+                        <label for="data-from-unit">From Unit:</label>
+                        <select id="data-from-unit">
+                            <option value="bytes">Bytes (B)</option>
+                            <option value="kilobytes">Kilobytes (KB)</option>
+                            <option value="megabytes">Megabytes (MB)</option>
+                            <option value="gigabytes">Gigabytes (GB)</option>
+                            <option value="terabytes">Terabytes (TB)</option>
+                            <option value="petabytes">Petabytes (PB)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results (1024-based):</label>
+                    <div class="output-display" id="data-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="about-page" class="content-module">
+            <h2>About Conversion Hub</h2>
+            <div class="card about-content">
+                <p>Welcome to Conversion Hub, the ultimate client-side utility application. This project is a demonstration of modern frontend development (HTML, CSS, JavaScript) principles, focusing on responsive design, modular organization, and a simulated user experience.</p>
+                
+                <h3>Key Features</h3>
+                <ul>
+                    <li>10+ Integrated Tools: A vast collection of real and simulated converters (Physics, Data, Time, Language, and more).</li>
+                    <li> Authentication: Login and Register pages use `localStorage` to create a seamless, simulated user flow without a backend server.</li>
+                    <li>Live Data Integration: The Currency Converter fetches live exchange rates from an external **Open Access API**.</li>
+                    <li>Dark/Light Mode: User preference is saved via `localStorage`.</li>
+                    <li>Organized Navigation: The expanded, categorized sidebar makes finding any tool quick and easy.</li>
+                </ul>
+
+                <h3>Developer Note</h3>
+                <p>Tools like are powerful interface simulations. In a real-world application, this operation would require server-side code or an external translation service to securely and efficiently process text.</p>
+                <p style="font-style: italic; color: var(--secondary-accent); margin-top: 20px;">Thank you for exploring the Conversion Hub project!</p>
+            </div>
+        </div>
+        
+        <div id="percent-wizard" class="content-module">
+            <h2>Unit Converter (Percentage)</h2>
+            <div class="card flex-row">
+                <div style="flex: 1;">
+                    <div class="input-group">
+                        <label for="percent-base">Base Value (Total):</label>
+                        <input type="number" id="percent-base" value="100" step="any" placeholder="e.g., 200">
+                    </div>
+                    <div class="input-group">
+                        <label for="percent-rate">Percentage Rate (%):</label>
+                        <input type="number" id="percent-rate" value="15" step="any" min="0" placeholder="e.g., 15">
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>Results:</label>
+                    <div class="output-display" id="percent-output">Results will appear here.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="age-converter" class="content-module">
+            <h2>Age Calculator</h2>
+            <div class="card flex-col">
+                <div class="input-group">
+                    <label for="dob-input">Enter your Date of Birth (DOB):</label>
+                    <input type="date" id="dob-input" required>
+                </div>
+                <label>Your Age Breakdown:</label>
+                <div class="output-display" id="age-output">Enter your DOB to see your age in years, months, days, and more!</div>
+                <div class="simulation-box">
+                    <i class="fas fa-calendar-alt"></i>
+                    <p>Calculates your age precisely, broken down into years, months, days, hours, minutes, and seconds.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="contact-us" class="content-module">
+            <h2>Contact Us</h2>
+            <div class="card flex-col" style="max-width: 600px; margin: 0 auto; gap: 30px;">
+                <p class="text-center" style="font-size: 1.1em; color: var(--secondary-accent);">
+                    We'd love to hear from you! Send us your feedback, bug reports, or partnership inquiries.
+                </p>
+                
+                <form id="contact-form" class="flex-col" style="gap: 15px;">
+                    <div class="input-group">
+                        <label for="contact-name">Your Name:</label>
+                        <input type="text" id="contact-name" required placeholder="Enter your full name">
+                    </div>
+                    <div class="input-group">
+                        <label for="contact-email">Your Email:</label>
+                        <input type="email" id="contact-email" required placeholder="Enter a valid email address">
+                    </div>
+                    <div class="input-group">
+                        <label for="contact-message">Message:</label>
+                        <textarea id="contact-message" rows="5" required placeholder="What can we help you with?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" id="contact-submit-btn" style="margin-top: 5px;">
+                        <i class="fas fa-paper-plane"></i> Send Message
+                    </button>
+                </form>
+
+                <div id="contact-message-output" class="simulation-box text-center" style="display: none; background-color: var(--input-bg);">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Your message has been received! This is a **simulated submission**; no data is sent externally.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-dashboard" class="content-module">
+            <h2>Admin Panel <i class="fas fa-user-shield"></i></h2>
+            <div class="simulation-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>This is a **Frontend Simulation**. All data is stored locally in your browser's Local Storage.</p>
+            </div>
+
+            <div class="card admin-section">
+                <h3>User & Data Management</h3>
+                <div class="result-line">
+                    <span>Simulated User Account:</span>
+                    <span id="admin-user-status" class="admin-status">...</span>
+                </div>
+                <div class="result-line" style="margin-top: 10px;">
+                    <span>Current Logged-in User:</span>
+                    <span id="admin-logged-in" class="admin-status">...</span>
+                </div>
+                <button class="btn-primary" onclick="clearAllLocalStorage()" style="background-color: #d32f2f;">
+                    <i class="fas fa-eraser"></i> Wipe ALL Local Storage Data
+                </button>
+            </div>
+            
+            <div class="card admin-section">
+                <h3>Currency API Status</h3>
+                <div class="result-line">
+                    <span>Last API Status:</span>
+                    <span id="admin-currency-status" class="admin-status">...</span>
+                </div>
+                <div class="result-line" style="margin-top: 10px;">
+                    <span>Fallback Rates Used:</span>
+                    <span id="admin-fallback-status" class="admin-status">No</span>
+                </div>
+                <button class="btn-primary" onclick="fetchCurrencyData()">
+                    <i class="fas fa-sync-alt"></i> Re-fetch Live Rates
+                </button>
+            </div>
+        </div>
+        </div>
+
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const contentModules = document.querySelectorAll('.content-module');
+        const dashboardCards = document.querySelectorAll('.dashboard-card');
+        const quickSearchInput = document.getElementById('quick-search');
+        const userGreeting = document.getElementById('user-greeting');
+        const body = document.body;
+
+        const REGISTERED_USER_KEY = 'ch_registered_user';
+        const LOGGED_IN_KEY = 'ch_logged_in_user';
+        const ADMIN_USERNAME = 'admin'; 
+        function switchModule(targetModuleId) {
+        
+            if (targetModuleId === 'admin-dashboard') {
+                const loggedInUser = localStorage.getItem(LOGGED_IN_KEY);
+                if (loggedInUser !== ADMIN_USERNAME) {
+                    alert('Access Denied: Only the user "admin" can access this panel.');
+                    return; 
+                }
+                loadAdminDashboard();
+            }
+            
+            navLinks.forEach(link => link.classList.remove('active'));
+            contentModules.forEach(module => module.classList.remove('active'));
+            
+            const targetModule = document.getElementById(targetModuleId);
+            const targetNavLink = document.querySelector(`.nav-link[data-module="${targetModuleId}"]`);
+            
+            if (['welcome-page', 'login-page', 'register-page'].includes(targetModuleId)) {
+                body.classList.add('content-only');
+            } else {
+                body.classList.remove('content-only');
+            }
+
+            if (targetModule) {
+                targetModule.classList.add('active');
+            }
+            if (targetNavLink) {
+                targetNavLink.classList.add('active');
+            }
+            if (targetModuleId === 'temp-lab') { convertTemperature(); } 
+            else if (targetModuleId === 'length-studio') { convertLength(); } 
+            else if (targetModuleId === 'weight-studio') { convertWeight(); } 
+            else if (targetModuleId === 'time-clock') { convertTime(); } 
+            else if (targetModuleId === 'speed-calc') { convertSpeed(); } 
+            else if (targetModuleId === 'area-mapper') { convertArea(); } 
+            else if (targetModuleId === 'volume-calc') { convertVolume(); } 
+            else if (targetModuleId === 'energy-calc') { convertEnergy(); } 
+            else if (targetModuleId === 'pressure-calc') { convertPressure(); } 
+            else if (targetModuleId === 'data-byte-calc') { convertData(); } 
+            else if (targetModuleId === 'percent-wizard') { calculatePercentage(); } 
+            else if (targetModuleId === 'currency-arena') { fetchCurrencyData(); }
+            else if (targetModuleId === 'age-converter') { convertAge(); }
+        }
+
+    
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (link.id === 'link-logout') {
+                    logoutUser();
+                } else {
+                    switchModule(link.getAttribute('data-module'));
+                }
+            });
+        });
+        
+        dashboardCards.forEach(card => {
+            card.addEventListener('click', () => {
+                switchModule(card.getAttribute('data-module'));
+            });
+        });
+
+     
+        function updateAuthUI() {
+            const loggedInUser = localStorage.getItem(LOGGED_IN_KEY);
+            const linkLogout = document.getElementById('link-logout');
+            const linkAdmin = document.getElementById('link-admin');
+            
+        
+            if (linkAdmin) {
+                linkAdmin.style.display = (loggedInUser === ADMIN_USERNAME) ? 'flex' : 'none';
+            }
+
+            if (loggedInUser) {
+                body.classList.remove('content-only');
+                linkLogout.textContent = `Logout (${loggedInUser})`;
+                userGreeting.textContent = loggedInUser;
+        
+                if (['welcome-page', 'login-page', 'register-page'].includes(document.querySelector('.content-module.active').id)) {
+                    switchModule('dashboard');
+                }
+            } else {
+                body.classList.add('content-only');
+                userGreeting.textContent = 'Guest';
+                switchModule('welcome-page');
+            }
+        }
+        
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const messageDiv = document.getElementById('register-message');
+            const storedUserString = localStorage.getItem(REGISTERED_USER_KEY);
+            const existingUser = storedUserString ? JSON.parse(storedUserString) : null;
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+            
+            if (username.length < 3 || password.length < 6) {
+                messageDiv.innerHTML = '<span style="color: var(--primary-accent);">Username must be 3+ chars, password 6+ chars.</span>';
+                return;
+            }
+            if (!emailRegex.test(email)) {
+                messageDiv.innerHTML = '<span style="color: var(--primary-accent);">Please enter a valid email address.</span>';
+                return;
+            }
+            
+            
+            if (existingUser && (existingUser.username === username || existingUser.email === email)) {
+                 messageDiv.innerHTML = '<span style="color: var(--primary-accent);">Error: Username or Email already exists.</span>';
+                 return;
+            }
+
+            const newUser = { username: username, email: email, password: password }; 
+            localStorage.setItem(REGISTERED_USER_KEY, JSON.stringify(newUser));
+            messageDiv.innerHTML = '<span style="color: var(--secondary-accent); font-weight: bold;">✅ Success! Redirecting to Login...</span>';
+            this.reset();
+            setTimeout(() => switchModule('login-page'), 1500);
+        });
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const messageDiv = document.getElementById('login-message');
+            const storedUserString = localStorage.getItem(REGISTERED_USER_KEY);
+            if (!storedUserString) {
+                messageDiv.innerHTML = '<span style="color: var(--primary-accent);">Error: No registered users found. Please register first.</span>';
+                return;
+            }
+            const storedUser = JSON.parse(storedUserString);
+            
+            const isUsernameMatch = storedUser.username === identifier;
+            const isEmailMatch = storedUser.email === identifier; 
+            
+            if ((isUsernameMatch || isEmailMatch) && storedUser.password === password) {
+                localStorage.setItem(LOGGED_IN_KEY, storedUser.username); 
+                messageDiv.innerHTML = '<span style="color: var(--secondary-accent); font-weight: bold;">✅ Login Successful! Redirecting...</span>';
+                this.reset();
+                setTimeout(() => updateAuthUI(), 1000); 
+            } else {
+                messageDiv.innerHTML = '<span style="color: var(--primary-accent);">Error: Invalid username/email or password.</span>';
+            }
+        });
+
+        function logoutUser() {
+            localStorage.removeItem(LOGGED_IN_KEY);
+            updateAuthUI(); 
+        }
+
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', this.checked ? 'dark' : 'light');
+        });
+
+        (function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            const toggle = document.getElementById('theme-toggle');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                toggle.checked = false;
+            } else {
+                 document.body.classList.remove('light-mode');
+                 toggle.checked = true;
+            }
+        })();
+        
+
+        function loadAdminDashboard() {
+            const userStatus = document.getElementById('admin-user-status');
+            const loggedInStatus = document.getElementById('admin-logged-in');
+            const currencyStatus = document.getElementById('admin-currency-status');
+            const fallbackStatus = document.getElementById('admin-fallback-status');
+
+        
+            const storedUserString = localStorage.getItem(REGISTERED_USER_KEY);
+            const loggedInUser = localStorage.getItem(LOGGED_IN_KEY);
+            
+            if (storedUserString) {
+                const storedUser = JSON.parse(storedUserString);
+                userStatus.textContent = `Registered as: ${storedUser.username} (${storedUser.email})`;
+                userStatus.style.color = 'var(--secondary-accent)';
+            } else {
+                userStatus.textContent = 'No user is registered.';
+                userStatus.style.color = 'var(--primary-accent)';
+            }
+
+            loggedInStatus.textContent = loggedInUser || 'None';
+            loggedInStatus.style.color = loggedInUser ? 'var(--secondary-accent)' : 'var(--primary-accent)';
+
+            if (ratesData && ratesData.result === 'success') {
+                currencyStatus.textContent = 'LIVE (Success)';
+                currencyStatus.style.color = 'var(--secondary-accent)';
+                fallbackStatus.textContent = 'No';
+            } else {
+                currencyStatus.textContent = 'API Failed/Using Fallback';
+                currencyStatus.style.color = 'var(--primary-accent)';
+                fallbackStatus.textContent = 'Yes';
+            }
+        }
+
+        function clearAllLocalStorage() {
+            if (confirm("WARNING: This will delete ALL users, settings, and local data. Are you sure?")) {
+                localStorage.clear();
+                alert("All local storage has been wiped. Logging out.");
+                updateAuthUI();
+                switchModule('welcome-page');
+            }
+        }
+        
+        const tempInput = document.getElementById('temp-input');
+        const tempFromUnitSelect = document.getElementById('temp-from-unit');
+        const tempOutput = document.getElementById('temp-output');
+        function convertTemperature() {
+            const value = parseFloat(tempInput.value);
+            const fromUnit = tempFromUnitSelect.value;
+            if (isNaN(value)) { tempOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            let C;
+            if (fromUnit === 'celsius') { C = value; } else if (fromUnit === 'fahrenheit') { C = (value - 32) * (5 / 9); } else if (fromUnit === 'kelvin') { C = value - 273.15; }
+            const F = (C * (9 / 5)) + 32;
+            const K = C + 273.15;
+            const conversions = [
+                { unit: 'Celsius', symbol: '°C', value: C },
+                { unit: 'Fahrenheit', symbol: '°F', value: F },
+                { unit: 'Kelvin', symbol: 'K', value: K }
+            ];
+            let resultHTML = '';
+            conversions.filter(conv => conv.unit.toLowerCase() !== fromUnit).forEach(conv => {
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(2)} ${conv.symbol}</span></div>`;
+            });
+            tempOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        tempInput.addEventListener('input', convertTemperature);
+        tempFromUnitSelect.addEventListener('change', convertTemperature);
+
+        const lengthInput = document.getElementById('length-input');
+        const lengthUnitSelect = document.getElementById('length-from-unit');
+        const lengthOutput = document.getElementById('length-output');
+        
+        // Conversion factors to meters
+        const toMeters = {
+            millimeters: 0.001,
+            centimeters: 0.01,
+            meters: 1,
+            kilometers: 1000,
+            inches: 0.0254,
+            feet: 0.3048,
+            yards: 0.9144,
+            miles: 1609.34
+        };
+        
+        // All available units with full names
+        const lengthUnits = {
+            millimeters: { name: 'Millimeters', symbol: 'mm' },
+            centimeters: { name: 'Centimeters', symbol: 'cm' },
+            meters: { name: 'Meters', symbol: 'm' },
+            kilometers: { name: 'Kilometers', symbol: 'km' },
+            inches: { name: 'Inches', symbol: 'in' },
+            feet: { name: 'Feet', symbol: 'ft' },
+            yards: { name: 'Yards', symbol: 'yd' },
+            miles: { name: 'Miles', symbol: 'mi' }
+        };
+        
+        function convertLength() {
+            const value = parseFloat(lengthInput.value);
+            const fromUnit = lengthUnitSelect.value;
+            
+            if (isNaN(value) || value < 0) {
+                lengthOutput.innerHTML = '<span style="color: var(--primary-accent);">Please enter a valid positive number.</span>';
+                return;
+            }
+            
+            if (value === 0) {
+                lengthOutput.innerHTML = '<div style="color: var(--secondary-accent);">All conversions = 0</div>';
+                return;
+            }
+            
+            // Convert input to meters first
+            const valueInMeters = value * toMeters[fromUnit];
+            
+            // Generate conversions for all units except the input unit
+            const conversions = [];
+            Object.keys(lengthUnits).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = valueInMeters / toMeters[unit];
+                    conversions.push({
+                        unit: lengthUnits[unit].name,
+                        symbol: lengthUnits[unit].symbol,
+                        value: convertedValue
+                    });
+                }
+            });
+            
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${lengthUnits[fromUnit].symbol}</div>`;
+            
+            conversions.forEach(conv => {
+                // Determine decimal places based on value magnitude
+                let decimals = 4;
+                if (conv.value > 100) decimals = 2;
+                else if (conv.value < 0.001) decimals = 6;
+                
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)} ${conv.symbol}</span></div>`;
+            });
+            
+            lengthOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        
+        lengthInput.addEventListener('input', convertLength);
+        lengthUnitSelect.addEventListener('change', convertLength);
+        
+        // Initialize with first conversion
+        convertLength();
+
+        const weightInput = document.getElementById('weight-input');
+        const weightUnitSelect = document.getElementById('weight-from-unit');
+        const weightOutput = document.getElementById('weight-output');
+        const toKilograms = { milligrams: 0.000001, grams: 0.001, kilograms: 1, metric_tons: 1000, ounces: 0.0283495, pounds: 0.453592, stones: 6.35029, us_tons: 907.185 };
+        const weightUnits = { milligrams: 'Milligrams (mg)', grams: 'Grams (g)', kilograms: 'Kilograms (kg)', metric_tons: 'Metric Tons (t)', ounces: 'Ounces (oz)', pounds: 'Pounds (lb)', stones: 'Stones (st)', us_tons: 'US Tons' };
+        function convertWeight() {
+            const value = parseFloat(weightInput.value);
+            const fromUnit = weightUnitSelect.value;
+            if (isNaN(value) || value < 0) { weightOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const kilograms = value * toKilograms[fromUnit];
+            const conversions = [];
+            Object.keys(toKilograms).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = kilograms / toKilograms[unit];
+                    conversions.push({ unit: weightUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${weightUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            weightOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        weightInput.addEventListener('input', convertWeight);
+        weightUnitSelect.addEventListener('change', convertWeight);
+
+
+        const timeInput = document.getElementById('time-input');
+        const timeUnitSelect = document.getElementById('time-from-unit');
+        const timeOutput = document.getElementById('time-output');
+        const toSeconds = { milliseconds: 0.001, seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
+        const timeUnits = { milliseconds: 'Milliseconds (ms)', seconds: 'Seconds (s)', minutes: 'Minutes (min)', hours: 'Hours (hr)', days: 'Days', weeks: 'Weeks', months: 'Months (avg)', years: 'Years (avg)' };
+        function convertTime() {
+            const value = parseFloat(timeInput.value);
+            const fromUnit = timeUnitSelect.value;
+            if (isNaN(value) || value < 0) { timeOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const seconds = value * toSeconds[fromUnit];
+            const conversions = [];
+            Object.keys(toSeconds).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = seconds / toSeconds[unit];
+                    conversions.push({ unit: timeUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${timeUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            timeOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        timeInput.addEventListener('input', convertTime);
+        timeUnitSelect.addEventListener('change', convertTime);
+  
+        const speedInput = document.getElementById('speed-input');
+        const speedUnitSelect = document.getElementById('speed-from-unit');
+        const speedOutput = document.getElementById('speed-output');
+        const toMPS = { mps: 1, kph: 1/3.6, mph: 0.44704, knots: 0.51444, ftps: 0.3048 };
+        const speedUnits = { mps: 'Meters/second (m/s)', kph: 'Kilometers/hour (kph)', mph: 'Miles/hour (mph)', knots: 'Knots (kn)', ftps: 'Feet/second (ft/s)' };
+        function convertSpeed() {
+            const value = parseFloat(speedInput.value);
+            const fromUnit = speedUnitSelect.value;
+            if (isNaN(value) || value < 0) { speedOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const mps = value * toMPS[fromUnit];
+            const conversions = [];
+            Object.keys(toMPS).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = mps / toMPS[unit];
+                    conversions.push({ unit: speedUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${speedUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(2)}</span></div>`;
+            });
+            speedOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        speedInput.addEventListener('input', convertSpeed);
+        speedUnitSelect.addEventListener('change', convertSpeed);
+
+        const areaInput = document.getElementById('area-input');
+        const areaUnitSelect = document.getElementById('area-from-unit');
+        const areaOutput = document.getElementById('area-output');
+        const toSqMeters = { sq_mm: 0.000001, sq_cm: 0.0001, sq_m: 1, sq_km: 1000000, sq_in: 0.00064516, sq_ft: 0.092903, sq_yd: 0.836127, acres: 4046.86, hectares: 10000 };
+        const areaUnits = { sq_mm: 'Square Millimeters (mm²)', sq_cm: 'Square Centimeters (cm²)', sq_m: 'Square Meters (m²)', sq_km: 'Square Kilometers (km²)', sq_in: 'Square Inches (in²)', sq_ft: 'Square Feet (ft²)', sq_yd: 'Square Yards (yd²)', acres: 'Acres (ac)', hectares: 'Hectares (ha)' };
+        function convertArea() {
+            const value = parseFloat(areaInput.value);
+            const fromUnit = areaUnitSelect.value;
+            if (isNaN(value) || value < 0) { areaOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const sqMeters = value * toSqMeters[fromUnit];
+            const conversions = [];
+            Object.keys(toSqMeters).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = sqMeters / toSqMeters[unit];
+                    conversions.push({ unit: areaUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${areaUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            areaOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        areaInput.addEventListener('input', convertArea);
+        areaUnitSelect.addEventListener('change', convertArea);
+
+   
+        const volumeInput = document.getElementById('volume-input');
+        const volumeUnitSelect = document.getElementById('volume-from-unit');
+        const volumeOutput = document.getElementById('volume-output');
+        const toLiters = { ml: 0.001, liters: 1, cubic_cm: 0.001, cubic_m: 1000, us_gal: 3.78541, us_pint: 0.473176, us_cup: 0.236588, fl_oz: 0.0295735 };
+        const volumeUnits = { ml: 'Milliliters (ml)', liters: 'Liters (L)', cubic_cm: 'Cubic Centimeters (cm³)', cubic_m: 'Cubic Meters (m³)', us_gal: 'US Gallons (gal)', us_pint: 'US Pints (pt)', us_cup: 'US Cups (cup)', fl_oz: 'Fluid Ounces (fl oz)' };
+        function convertVolume() {
+            const value = parseFloat(volumeInput.value);
+            const fromUnit = volumeUnitSelect.value;
+            if (isNaN(value) || value < 0) { volumeOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const liters = value * toLiters[fromUnit];
+            const conversions = [];
+            Object.keys(toLiters).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = liters / toLiters[unit];
+                    conversions.push({ unit: volumeUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${volumeUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            volumeOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        volumeInput.addEventListener('input', convertVolume);
+        volumeUnitSelect.addEventListener('change', convertVolume);
+
+        const energyInput = document.getElementById('energy-input');
+        const energyUnitSelect = document.getElementById('energy-from-unit');
+        const energyOutput = document.getElementById('energy-output');
+        const toJoules = { joules: 1, kilojoules: 1000, calories: 4.184, kilocalories: 4184, wh: 3600, kwh: 3600000, btu: 1055.06, erg: 0.0000001 };
+        const energyUnits = { joules: 'Joules (J)', kilojoules: 'Kilojoules (kJ)', calories: 'Calories (cal)', kilocalories: 'Kilocalories (kcal)', wh: 'Watt-hours (Wh)', kwh: 'Kilowatt-hours (kWh)', btu: 'BTU', erg: 'Ergs' };
+        function convertEnergy() {
+            const value = parseFloat(energyInput.value);
+            const fromUnit = energyUnitSelect.value;
+            if (isNaN(value) || value < 0) { energyOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const joules = value * toJoules[fromUnit];
+            const conversions = [];
+            Object.keys(toJoules).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = joules / toJoules[unit];
+                    conversions.push({ unit: energyUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${energyUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            energyOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        energyInput.addEventListener('input', convertEnergy);
+        energyUnitSelect.addEventListener('change', convertEnergy);
+        
+        const pressureInput = document.getElementById('pressure-input');
+        const pressureUnitSelect = document.getElementById('pressure-from-unit');
+        const pressureOutput = document.getElementById('pressure-output');
+        const toPascals = { pascal: 1, kpa: 1000, bar: 100000, psi: 6894.76, atm: 101325, torr: 133.322 };
+        const pressureUnits = { pascal: 'Pascals (Pa)', kpa: 'Kilopascals (kPa)', bar: 'Bar', psi: 'PSI', atm: 'Atmospheres (atm)', torr: 'Torr' };
+        function convertPressure() {
+            const value = parseFloat(pressureInput.value);
+            const fromUnit = pressureUnitSelect.value;
+            if (isNaN(value) || value < 0) { pressureOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const pascals = value * toPascals[fromUnit];
+            const conversions = [];
+            Object.keys(toPascals).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = pascals / toPascals[unit];
+                    conversions.push({ unit: pressureUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${pressureUnits[fromUnit]}</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            pressureOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        pressureInput.addEventListener('input', convertPressure);
+        pressureUnitSelect.addEventListener('change', convertPressure);
+
+        const currencyAmount = document.getElementById('currency-amount');
+        const currencyFrom = document.getElementById('currency-from');
+        const currencyTo = document.getElementById('currency-to');
+        const currencyOutput = document.getElementById('currency-output');
+        const currencyStatus = document.getElementById('currency-status');
+
+        let ratesData = null; 
+        
+        const API_BASE_CURRENCY = 'USD';
+        const API_ENDPOINT = `https://open.er-api.com/v6/latest/${API_BASE_CURRENCY}`;
+        
+        const simulatedRates = { 
+            result: 'success', 
+            rates: { 
+                USD: 1, 
+                EUR: 0.92, 
+                GBP: 0.79, 
+                JPY: 154.50,
+                CAD: 1.36, 
+                AUD: 1.50,
+                CNY: 7.20
+            } 
+        }; 
+
+        async function fetchCurrencyData() {
+            currencyStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching live exchange rates from public API...';
+            try {
+                const response = await fetch(API_ENDPOINT);
+                ratesData = await response.json();
+
+                if (ratesData.result === 'success' && ratesData.rates) {
+                    const currencies = Object.keys(ratesData.rates).sort();
+                    let optionsHTML = '';
+                    currencies.forEach(currency => { optionsHTML += `<option value="${currency}">${currency}</option>`; });
+                    currencyFrom.innerHTML = optionsHTML;
+                    currencyTo.innerHTML = optionsHTML;
+                    currencyFrom.value = API_BASE_CURRENCY;
+                    currencyTo.value = 'EUR';
+
+                    convertCurrency();
+                    currencyStatus.innerHTML = `✅ Live rates loaded via **Open Access API** (Base: ${API_BASE_CURRENCY}).`;
+                } else {
+                    throw new Error('API returned failure or no rates.');
+                }
+
+            } catch (error) {
+                ratesData = simulatedRates;
+                
+                const currencies = Object.keys(ratesData.rates).sort();
+                let optionsHTML = '';
+                currencies.forEach(currency => { optionsHTML += `<option value="${currency}">${currency}</option>`; });
+                currencyFrom.innerHTML = optionsHTML;
+                currencyTo.innerHTML = optionsHTML;
+                currencyFrom.value = 'USD';
+                currencyTo.value = 'EUR';
+                
+                convertCurrency();
+                currencyOutput.innerHTML = `<span style="color: var(--primary-accent);">Error loading live rates.</span>`;
+                currencyStatus.innerHTML = `❌ Failed to load live rates. Using **SIMULATED** rates.`;
+                console.error('Currency Fetch error:', error);
+            }
+        }
+
+        function convertCurrency() {
+            if (!ratesData || ratesData.result !== 'success' || !ratesData.rates) { return; }
+            const amount = parseFloat(currencyAmount.value) || 0;
+            const from = currencyFrom.value;
+            const to = currencyTo.value;
+            
+            const rateFrom = ratesData.rates[from] || 1; 
+            const rateTo = ratesData.rates[to] || 1;    
+            
+            const amountInBase = amount / rateFrom;
+            const result = amountInBase * rateTo;
+            const directRate = rateTo / rateFrom;
+
+            currencyOutput.innerHTML = `
+                <div class="result-line"><span style="font-size: 1.2em;">Result:</span><span class="result-unit" style="font-size: 1.8em;">${result.toFixed(4)} ${to}</span></div>
+                <div class="result-line" style="font-size: 0.9em; opacity: 0.8;"><span>Exchange Rate (1 ${from}):</span><span class="result-unit">${directRate.toFixed(6)} ${to}</span></div>
+            `;
+        }
+        currencyAmount.addEventListener('input', convertCurrency);
+        currencyFrom.addEventListener('change', convertCurrency);
+        currencyTo.addEventListener('change', convertCurrency);
+
+
+        const dataInput = document.getElementById('data-input');
+        const dataUnitSelect = document.getElementById('data-from-unit');
+        const dataOutput = document.getElementById('data-output');
+        // Binary (1024) standard for actual computer storage
+        const toBytes = { bytes: 1, kilobytes: 1024, megabytes: 1024*1024, gigabytes: 1024*1024*1024, terabytes: 1024*1024*1024*1024, petabytes: 1024*1024*1024*1024*1024 };
+        const dataUnits = { bytes: 'Bytes (B)', kilobytes: 'Kilobytes (KB)', megabytes: 'Megabytes (MB)', gigabytes: 'Gigabytes (GB)', terabytes: 'Terabytes (TB)', petabytes: 'Petabytes (PB)' };
+        function convertData() {
+            const value = parseFloat(dataInput.value);
+            const fromUnit = dataUnitSelect.value;
+            if (isNaN(value) || value < 0) { dataOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid number.</span>'; return; }
+            const bytes = value * toBytes[fromUnit];
+            const conversions = [];
+            Object.keys(toBytes).forEach(unit => {
+                if (unit !== fromUnit) {
+                    const convertedValue = bytes / toBytes[unit];
+                    conversions.push({ unit: dataUnits[unit], value: convertedValue });
+                }
+            });
+            let resultHTML = `<div style="margin-bottom: 0.5rem; color: var(--secondary-accent); font-weight: bold;">From: ${value} ${dataUnits[fromUnit]} (Binary: 1024-based)</div>`;
+            conversions.forEach(conv => {
+                let decimals = conv.value > 100 ? 2 : conv.value < 0.001 ? 6 : 4;
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${conv.value.toFixed(decimals)}</span></div>`;
+            });
+            dataOutput.innerHTML = resultHTML || 'Ready for conversion.';
+        }
+        dataInput.addEventListener('input', convertData);
+        dataUnitSelect.addEventListener('change', convertData);
+        const dobInput = document.getElementById('dob-input');
+        const ageOutput = document.getElementById('age-output');
+        function convertAge() {
+            const dobString = dobInput.value;
+            if (!dobString) {
+                ageOutput.innerHTML = 'Enter your DOB to see your age.'; 
+                return;
+            }
+
+            const dob = new Date(dobString);
+            const today = new Date();
+            
+            if (dob >= today) {
+                ageOutput.innerHTML = '<span style="color: var(--primary-accent);">Date of Birth must be in the past.</span>';
+                return;
+            }
+
+            let years = today.getFullYear() - dob.getFullYear();
+            let months = today.getMonth() - dob.getMonth();
+            let days = today.getDate() - dob.getDate();
+            
+            if (days < 0) {
+                months--;
+                days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            const diffTime = Math.abs(today.getTime() - dob.getTime());
+            const msInDay = 1000 * 60 * 60 * 24;
+            const diffDays = diffTime / msInDay;
+            
+            const weeks = diffDays / 7;
+            const hours = diffDays * 24;
+            const minutes = hours * 60;
+            const seconds = minutes * 60;
+
+            const conversions = [
+                { unit: 'Days (Total Elapsed)', value: diffDays, format: 0 },
+                { unit: 'Weeks (Total Elapsed)', value: weeks, format: 0 },
+                { unit: 'Hours (Total Elapsed)', value: hours, format: 0 },
+                { unit: 'Minutes (Total Elapsed)', value: minutes, format: 0 },
+                { unit: 'Seconds (Total Elapsed)', value: seconds, format: 0 },
+            ];
+
+            let resultHTML = `<div class="result-line"><span>Current Age:</span><span class="result-unit" style="font-size: 1.5em;">${years} Yrs, ${months} Mos, ${days} Days</span></div><hr style="border-color: var(--border-color); opacity: 0.5;">`;
+
+            conversions.forEach(conv => {
+                const formattedValue = conv.value.toFixed(conv.format).toLocaleString('en-US');
+                resultHTML += `<div class="result-line"><span>${conv.unit}:</span><span class="result-unit">${formattedValue}</span></div>`;
+            });
+            ageOutput.innerHTML = resultHTML || 'Ready for calculation.';
+        }
+        dobInput.addEventListener('change', convertAge);
+        dobInput.addEventListener('input', convertAge);
+    
+        const percentBase = document.getElementById('percent-base');
+        const percentRate = document.getElementById('percent-rate');
+        const percentOutput = document.getElementById('percent-output');
+        function calculatePercentage() {
+            const base = parseFloat(percentBase.value) || 0;
+            const rate = parseFloat(percentRate.value) || 0;
+            if (isNaN(base) || isNaN(rate)) { percentOutput.innerHTML = '<span style="color: var(--primary-accent);">Invalid numbers.</span>'; return; }
+            const value = (rate / 100) * base;
+            const discount = base - value;
+            const tax = base + value;
+            const resultHTML = `
+                <div class="result-line"><span>${rate}% of ${base.toFixed(2)} is:</span> <span class="result-unit">${value.toFixed(2)}</span></div>
+                <div class="result-line"><span>Result of ${rate}% Discount:</span> <span class="result-unit">${discount.toFixed(2)}</span></div>
+                <div class="result-line"><span>Result of ${rate}% Tax Added:</span> <span class="result-unit">${tax.toFixed(2)}</span></div>
+            `;
+            percentOutput.innerHTML = resultHTML;
+        }
+        percentBase.addEventListener('input', calculatePercentage);
+        percentRate.addEventListener('input', calculatePercentage);
+        
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageDiv = document.getElementById('contact-message-output');
+            const button = document.getElementById('contact-submit-btn');
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            button.disabled = true;
+
+            setTimeout(() => {
+                messageDiv.style.display = 'block';
+                button.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+                button.disabled = false;
+                this.reset();
+                
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 4000);
+                
+            }, 1500);
+        });
+
+      
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('dob-input')) {
+                document.getElementById('dob-input').setAttribute('max', today);
+                const defaultDate = new Date();
+                defaultDate.setFullYear(defaultDate.getFullYear() - 20);
+                document.getElementById('dob-input').value = defaultDate.toISOString().split('T')[0];
+            }
+
+
+            document.getElementById('temp-input').value = '25'; 
+            document.getElementById('length-input').value = '5';
+            document.getElementById('time-input').value = '7200';
+
+            convertTemperature();
+            convertLength();
+            convertWeight();
+            convertTime();
+            convertSpeed();
+            convertArea();
+            convertVolume();
+            convertEnergy();
+            convertPressure();
+            calculatePercentage();
+            convertAge();
+
+            fetchCurrencyData();
+            updateAuthUI();
+        });
+    </script>
+</body>
+</html>
